@@ -1,0 +1,14 @@
+; $Id: geshifield.info,v 1.1 2010/02/01 00:33:01 soxofaan Exp $
+name = "GeSHi field"
+description = "Provides a CCK field for source code with GeSHI syntax highlighting."
+package = "Filters"
+core = 6.x
+dependencies[] = content
+dependencies[] = geshifilter
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "6.x-1.4"
+core = "6.x"
+project = "geshifilter"
+datestamp = "1297013756"
+

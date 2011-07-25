@@ -1,0 +1,10 @@
+Instalação:
+
+1) Faça o clone do repositório
+2) Crie o diretório files no diretório raiz do site e dê permissão de escrita para todos.
+chmod 777 files/
+3) Copie o arquivo sites/default/default.settings.php para sites/default/settings.php e configure de acordo com o seu ambiente.
+4) Importe o arquivo drupalbrasil-dump.sql para o seu banco de dados.
+5) Acesse sua cópia do drupal Brasil.
+
+

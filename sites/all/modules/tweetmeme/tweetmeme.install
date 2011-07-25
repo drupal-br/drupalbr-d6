@@ -1,0 +1,19 @@
+<?php
+// $Id: tweetmeme.install,v 1.1.2.2 2009/08/14 03:34:26 robloach Exp $
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function tweetmeme_uninstall() {
+  variable_del('tweetmeme_types');
+  variable_del('tweetmeme_location');
+  variable_del('tweetmeme_style');
+  variable_del('tweetmeme_filter');
+  variable_del('tweetmeme_filter_option');
+  variable_del('tweetmeme_media');
+  variable_del('tweetmeme_number_of_items');
+  variable_del('tweetmeme_width');
+  variable_del('tweetmeme_header');
+  variable_del('tweetmeme_border_width');
+  variable_del('tweetmeme_border_color');
+}

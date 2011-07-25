@@ -1,0 +1,43 @@
+<?php
+// $Id:
+
+/**
+ * @file
+ * Some rules integration for the user points module
+ */
+
+/**
+* Rules hook implementation.
+*/
+function userpoints_rules_action_info() {
+   $actions = array();
+   $actions['userpoints_action_grant_points'] = array(
+      'label' => t('Grant points to a user'),
+      'arguments' => array(
+        'user' => array('type' => 'user','label' => t('User') )
+       ),
+      'module' => 'Userpoints',
+      'eval input' => array('points')
+  );
+  return $actions;
+}
+
+/**
+* Rules action - grant points to a user
+*/
+function userpoints_action_grant_points($user,$settings){
+    userpoints_userpointsapi(array('uid' => $user->uid, 'points' => $settings['points']));
+}
+
+/**
+* Rules form configuration - allow number of points to be set by the rule
+*/
+function userpoints_action_grant_points_form($settings = array(), &$form) {
+
+  $form['settings']['points'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of points'),
+    '#default_value' => isset($settings['points']) ? $settings['points'] : '',
+    '#description' => t('The number of points to award')
+  );
+}

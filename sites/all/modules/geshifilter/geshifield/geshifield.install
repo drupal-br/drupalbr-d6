@@ -1,0 +1,42 @@
+<?php
+// $Id: geshifield.install,v 1.2 2010/02/01 00:34:41 soxofaan Exp $
+
+/**
+ * @file
+ * Install and unistall related function for the GeSHi Field module.
+ *
+ * @todo check this content_notify stuff.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function geshifield_install() {
+  drupal_load('module', 'content');
+  content_notify('install', 'geshifield');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function geshifield_uninstall() {
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'geshifield');
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function geshifield_enable() {
+  drupal_load('module', 'content');
+  content_notify('enable', 'geshifield');
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function geshifield_disable() {
+  drupal_load('module', 'content');
+  content_notify('disable', 'geshifield');
+}
+

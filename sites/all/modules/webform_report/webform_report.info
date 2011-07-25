@@ -1,0 +1,12 @@
+; $id$
+name = Webform Report
+description = Allows users to create reports from webform data.
+dependencies[] = webform
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-02-21
+version = "6.x-2.0"
+core = "6.x"
+project = "webform_report"
+datestamp = "1298328768"
+

@@ -1,0 +1,5 @@
+name = Drupal Brasil
+description = Tema personalizado para o Drupal Brasil
+version = 6.x-1.1
+core = 6.x
+engine = phptemplate

@@ -1,0 +1,31 @@
+		.tweet {
+			font-size:11px;
+			background: #fff;
+			margin: 4px 0;
+			padding: 4px;
+			-moz-border-radius: 4px;
+			-webkit-border-radius: 4px;
+			border:1px solid #45A5DF;
+		}
+		.tweet img {
+			float: left;
+			margin: 0 8px 4px 0;
+		}
+		.tweet .text {
+			margin: 0;
+		}
+		.tweet .time a {
+			font-size: 80%;
+			color: #888;
+			white-space: nowrap;
+			text-decoration: none;
+		}
+		.tweet .time a:hover {
+			text-decoration: underline;
+		}
+		#twitterSearch .tweet {
+			min-height: 24px;
+		}
+		#twitterSearch .tweet .text {
+			margin-left: 32px;
+		}
