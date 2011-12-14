@@ -46,23 +46,10 @@
 
 </div>
 <div id="footer">
-	<!-- INSERIR LOGO DO NANDO! -->
-	<div style="float: right; margin: 10px 15px 0px 0px; font-size: 11px;">Design<a href="http://nandostudio.com" target="_blank"><img src="<?php print $base_path.path_to_theme(); ?>/imgs/logo_nando.gif" alt="image" width="60" height="44" border="0" style="vertical-align: middle" ala="Design por Fernando Albuquerque" /></a></div>
-	<!-- INSERIR LOGO DO NANDO! -->
 	<p><?php print $footer_message ?></p></div>
 </div>
 
 </div>
 <?php print $closure ?>
-
-<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
-</script>
-<script type="text/javascript">
-_uacct = "UA-426480-1";
-urchinTracker();
-</script>
-<SPAN ID=isee1 STYLE=position:absolute;width:0px;height:0px;top:-5px;visibility:hidden>
-  <IMG SRC=http://a0.drupal-br-org.hst.isee1.net/ WIDTH=1 HEIGHT=1 BORDER=0>
-</SPAN>
 </body>
 </html>
