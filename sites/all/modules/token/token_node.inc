@@ -18,113 +18,111 @@
  */
 function node_token_values($type, $object = NULL, $options = array()) {
   $values = array();
-  switch ($type) {
-    case 'node':
-      $node = $object;
-      $account = db_fetch_object(db_query("SELECT name, mail FROM {users} WHERE uid = %d", $node->uid));
 
-      // Adjust for the anonymous user name.
-      if (!$node->uid && !$account->name) {
-        $account->name = variable_get('anonymous', t('Anonymous'));
-      }
+  if ($type == 'node' && !empty($object)) {
+    $node = $object;
+    $account = db_fetch_object(db_query("SELECT name, mail FROM {users} WHERE uid = %d", $node->uid));
 
-      $values['nid']                = $node->nid;
-      $values['type']               = $node->type;
-      $values['type-name']          = node_get_types('name', $node->type);
-      $values['language']           = check_plain($node->language);
-      $values['title']              = check_plain($node->title);
-      $values['title-raw']          = $node->title;
-      $values['node-path-raw']      = drupal_get_path_alias('node/'. $node->nid);
-      $values['node-path']          = check_plain($values['node-path-raw']);
-      $values['node-url']           = url('node/' . $node->nid, array('absolute' => TRUE));
-      $values['author-uid']         = $node->uid;
-      $values['author-name']        = check_plain($account->name);
-      $values['author-name-raw']    = $account->name;
-      $values['author-mail']        = check_plain($account->mail);
-      $values['author-mail-raw']    = $account->mail;
+    // Adjust for the anonymous user name.
+    if (!$node->uid && !$account->name) {
+      $account->name = variable_get('anonymous', t('Anonymous'));
+    }
 
-      $values['log-raw']            = isset($node->log) ? $node->log : '';
-      $values['log']                = filter_xss($values['log-raw']);
+    $values['nid']                = $node->nid;
+    $values['type']               = $node->type;
+    $values['type-name']          = node_get_types('name', $node->type);
+    $values['language']           = check_plain($node->language);
+    $values['title']              = check_plain($node->title);
+    $values['title-raw']          = $node->title;
+    $values['node-path-raw']      = drupal_get_path_alias('node/'. $node->nid);
+    $values['node-path']          = check_plain($values['node-path-raw']);
+    $values['node-url']           = url('node/' . $node->nid, array('absolute' => TRUE));
+    $values['author-uid']         = $node->uid;
+    $values['author-name']        = check_plain($account->name);
+    $values['author-name-raw']    = $account->name;
+    $values['author-mail']        = check_plain($account->mail);
+    $values['author-mail-raw']    = $account->mail;
 
-      if (module_exists('comment')) {
-        $values['node_comment_count'] = isset($node->comment_count) ? $node->comment_count : 0;
-        $values['unread_comment_count'] = comment_num_new($node->nid);
-      }
-      else {
-        $values['node_comment_count'] = 0;
-        $values['unread_comment_count'] = 0;
-      }
+    $values['log-raw']            = isset($node->log) ? $node->log : '';
+    $values['log']                = filter_xss($values['log-raw']);
 
-      if (isset($node->created)) {
-        $values += token_get_date_token_values($node->created, '');
-      }
+    if (module_exists('comment')) {
+      $values['node_comment_count'] = isset($node->comment_count) ? $node->comment_count : 0;
+      $values['unread_comment_count'] = comment_num_new($node->nid);
+    }
+    else {
+      $values['node_comment_count'] = 0;
+      $values['unread_comment_count'] = 0;
+    }
 
-      if (isset($node->changed)) {
-        $values += token_get_date_token_values($node->changed, 'mod-');
-      }
+    if (isset($node->created)) {
+      $values += token_get_date_token_values($node->created, '');
+    }
 
-      // And now taxonomy, which is a bit more work. This code is adapted from
-      // pathauto's handling code; it's intended for compatibility with it.
-      if (module_exists('taxonomy') && !empty($node->taxonomy) && is_array($node->taxonomy)) {
-        foreach ($node->taxonomy as $term) {
-          $original_term = $term;
-          if ((object)$term) {
-            // With free-tagging it's somewhat hard to get the tid, vid, name values
-            // Rather than duplicating taxonomy.module code here you should make sure your calling module
-            // has a weight of at least 1 which will run after taxonomy has saved the data which allows us to
-            // pull it out of the db here.
-            if (!isset($term->name) || !isset($term->tid)) {
-              $vid = db_result(db_query_range("SELECT t.vid FROM {term_node} r INNER JOIN {term_data} t ON r.tid = t.tid INNER JOIN {vocabulary} v ON t.vid = v.vid WHERE r.nid = %d ORDER BY v.weight, t.weight, t.name", $object->nid, 0, 1));
-              if (!$vid) {
-                continue;
-              }
-              $term = db_fetch_object(db_query_range("SELECT t.tid, t.name FROM {term_data} t INNER JOIN {term_node} r ON r.tid = t.tid WHERE t.vid = %d AND r.vid = %d ORDER BY t.weight", $vid, $object->vid, 0, 1));
-              $term->vid = $vid;
+    if (isset($node->changed)) {
+      $values += token_get_date_token_values($node->changed, 'mod-');
+    }
+
+    // And now taxonomy, which is a bit more work. This code is adapted from
+    // pathauto's handling code; it's intended for compatibility with it.
+    if (module_exists('taxonomy') && !empty($node->taxonomy) && is_array($node->taxonomy)) {
+      foreach ($node->taxonomy as $term) {
+        $original_term = $term;
+        if ((object)$term) {
+          // With free-tagging it's somewhat hard to get the tid, vid, name values
+          // Rather than duplicating taxonomy.module code here you should make sure your calling module
+          // has a weight of at least 1 which will run after taxonomy has saved the data which allows us to
+          // pull it out of the db here.
+          if (!isset($term->name) || !isset($term->tid)) {
+            $vid = db_result(db_query_range("SELECT t.vid FROM {term_node} r INNER JOIN {term_data} t ON r.tid = t.tid INNER JOIN {vocabulary} v ON t.vid = v.vid WHERE r.nid = %d ORDER BY v.weight, t.weight, t.name", $object->nid, 0, 1));
+            if (!$vid) {
+              continue;
             }
-
-            // Ok, if we still don't have a term name maybe this is a pre-taxonomy submit node
-            // So if it's a number we can get data from it
-            if (!isset($term->name) && is_array($original_term)) {
-              $tid = array_shift($original_term);
-              if (is_numeric($tid)) {
-                $term = taxonomy_get_term($tid);
-              }
-            }
-            $values['term'] = check_plain($term->name);
-            $values['term-raw'] = $term->name;
-            $values['term-id'] = $term->tid;
-            $vid = $term->vid;
-
-            if (!empty($vid)) {
-              $vocabulary = taxonomy_vocabulary_load($vid);
-              $values['vocab'] = check_plain($vocabulary->name);
-              $values['vocab-raw'] = $vocabulary->name;
-              $values['vocab-id'] = $vocabulary->vid;
-            }
-
-            // The 'catpath' (and 'cat') tokens have been removed, as they caused quite a bit of confusion,
-            // and the catpath was a relatively expensive query when the taxonomy tree was deep.
-            //
-            // It existed only to provide forward-compatability with pathauto module, and
-            // for most uses of token.module, it was a relatively useless token -- it exposed
-            // a list of term names formatted as a URL/path string. Once pathauto supports
-            // tokens, *it* should handle this catpath alias as it's the primary consumer.
-            break;
+            $term = db_fetch_object(db_query_range("SELECT t.tid, t.name FROM {term_data} t INNER JOIN {term_node} r ON r.tid = t.tid WHERE t.vid = %d AND r.vid = %d ORDER BY t.weight", $vid, $object->vid, 0, 1));
+            $term->vid = $vid;
           }
+
+          // Ok, if we still don't have a term name maybe this is a pre-taxonomy submit node
+          // So if it's a number we can get data from it
+          if (!isset($term->name) && is_array($original_term)) {
+            $tid = array_shift($original_term);
+            if (is_numeric($tid)) {
+              $term = taxonomy_get_term($tid);
+            }
+          }
+          $values['term'] = check_plain($term->name);
+          $values['term-raw'] = $term->name;
+          $values['term-id'] = $term->tid;
+          $vid = $term->vid;
+
+          if (!empty($vid)) {
+            $vocabulary = taxonomy_vocabulary_load($vid);
+            $values['vocab'] = check_plain($vocabulary->name);
+            $values['vocab-raw'] = $vocabulary->name;
+            $values['vocab-id'] = $vocabulary->vid;
+          }
+
+          // The 'catpath' (and 'cat') tokens have been removed, as they caused quite a bit of confusion,
+          // and the catpath was a relatively expensive query when the taxonomy tree was deep.
+          //
+          // It existed only to provide forward-compatability with pathauto module, and
+          // for most uses of token.module, it was a relatively useless token -- it exposed
+          // a list of term names formatted as a URL/path string. Once pathauto supports
+          // tokens, *it* should handle this catpath alias as it's the primary consumer.
+          break;
         }
       }
-      // It's possible to leave that block and still not have good data.
-      // So, we test for these and if not set, set them.
-      if (!isset($values['term'])) {
-        $values['term'] = '';
-        $values['term-raw'] = '';
-        $values['term-id'] = '';
-        $values['vocab'] = '';
-        $values['vocab-raw'] = '';
-        $values['vocab-id'] = '';
-      }
-
-      break;
+    }
+    // It's possible to leave that block and still not have good data.
+    // So, we test for these and if not set, set them.
+    if (!isset($values['term'])) {
+      $values['term'] = '';
+      $values['term-raw'] = '';
+      $values['term-id'] = '';
+      $values['vocab'] = '';
+      $values['vocab-raw'] = '';
+      $values['vocab-id'] = '';
+    }
   }
 
   return $values;
@@ -134,6 +132,8 @@ function node_token_values($type, $object = NULL, $options = array()) {
  * Implementation of hook_token_list().
  */
 function node_token_list($type = 'all') {
+  $tokens = array();
+
   if ($type == 'node' || $type == 'all') {
     $tokens['node']['nid']             = t('The unique ID of the content item, or "node".');
     $tokens['node']['type']            = t('The type of the node.');
@@ -172,9 +172,9 @@ function node_token_list($type = 'all') {
       // Temporarily disabled -- see notes in node_token_values.
       // $tokens['node']['catpath']        = t("Full taxonomy tree for the topmost term");
     }
-
-    return $tokens;
   }
+
+  return $tokens;
 }
 
 /**
@@ -230,6 +230,9 @@ function menu_token_values($type, $object = NULL, $options = array()) {
     $values['menu-link-parent-path-raw'] = '';
 
     if (!isset($node->menu)) {
+      // We need to clone the node as menu_nodeapi($node, 'prepare') may cause data loss.
+      // @see http://drupal.org/node/1317926
+      $node = drupal_clone($node);
       // Nodes do not have their menu links loaded via menu_nodeapi($node, 'load').
       menu_nodeapi($node, 'prepare');
     }

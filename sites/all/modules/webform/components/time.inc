@@ -24,6 +24,7 @@ function _webform_defaults_time() {
       'hourformat' => '12-hour',
       'title_display' => 0,
       'description' => '',
+      'private' => FALSE,
     ),
   );
 }
@@ -35,9 +36,11 @@ function _webform_theme_time() {
   return array(
     'webform_time' => array(
       'arguments' => array('element' => NULL),
+      'file' => 'components/time.inc',
     ),
     'webform_display_time' => array(
       'arguments' => array('element' => NULL),
+      'file' => 'components/time.inc',
     ),
   );
 }

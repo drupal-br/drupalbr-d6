@@ -17,6 +17,8 @@
  * Implementation of hook_token_list().
  */
 function user_token_list($type = 'all') {
+  $tokens = array();
+
   if ($type == 'user' || $type == 'all') {
     $tokens['user']['user']     = t("The login name of the user account.");
     $tokens['user']['user-raw'] = t("The login name of the user account.");
@@ -29,9 +31,9 @@ function user_token_list($type = 'all') {
 
     $tokens['user']['account-url']      = t("The URL of the account profile page.");
     $tokens['user']['account-edit-url'] = t("The URL of the account edit page.");
-
-    return $tokens;
   }
+
+  return $tokens;
 }
 
 /**
@@ -39,40 +41,35 @@ function user_token_list($type = 'all') {
  */
 function user_token_values($type, $object = NULL, $options = array()) {
   $values = array();
-  switch ($type) {
-    case 'user':
-      if (!empty($object)) {
-        $account = $object;
-      }
-      else {
-        $account = user_load(array('uid' => $GLOBALS['user']->uid));
-      }
 
-      // Adjust for the anonymous user name.
-      if (!$account->uid && !$account->name) {
-        $account->name = variable_get('anonymous', 'Anonymous');
-      }
+  if ($type == 'user') {
+    // @todo Why do we all the current user object to be loaded?
+    $account = !empty($object) ? $object : user_load(array('uid' => $GLOBALS['user']->uid));
 
-      $values['user']     = check_plain($account->name);
-      $values['user-raw'] = $account->name;
-      $values['uid']      = $account->uid;
-      $values['mail']     = $account->uid ? $account->mail : '';
+    // Adjust for the anonymous user name.
+    if (!$account->uid && empty($account->name)) {
+      $account->name = variable_get('anonymous', 'Anonymous');
+    }
 
-      if ($account->uid) {
-        $values += token_get_date_token_values($account->created, 'user-created-');
-        $values += token_get_date_token_values($account->access, 'user-last-login-');
-        $values['reg-date'] = $values['user-created-small'];
-        $values['reg-since'] = $values['user-created-since'];
-        $values['log-date'] = $values['user-last-login-small'];
-        $values['log-since'] = $values['user-last-login-since'];
-        $values['date-in-tz'] = $account->uid ? format_date(time(), 'small', '', $account->timezone) : '';
-      }
+    $values['user']     = check_plain($account->name);
+    $values['user-raw'] = $account->name;
+    $values['uid']      = $account->uid;
+    $values['mail']     = $account->uid ? $account->mail : '';
 
-      $values['account-url']      = $account->uid ? url("user/$account->uid", array('absolute' => TRUE)) : '';
-      $values['account-edit-url'] = $account->uid ? url("user/$account->uid/edit", array('absolute' => TRUE)) : '';
-      $values['account-edit']     = $values['account-edit-url'];
+    if ($account->uid) {
+      $values += token_get_date_token_values($account->created, 'user-created-');
+      $values += token_get_date_token_values($account->access, 'user-last-login-');
+      $values['reg-date'] = $values['user-created-small'];
+      $values['reg-since'] = $values['user-created-since'];
+      $values['log-date'] = $values['user-last-login-small'];
+      $values['log-since'] = $values['user-last-login-since'];
+      $values['date-in-tz'] = $account->uid ? format_date(time(), 'small', '', $account->timezone) : '';
+    }
 
-      break;
+    $values['account-url']      = $account->uid ? url("user/$account->uid", array('absolute' => TRUE)) : '';
+    $values['account-edit-url'] = $account->uid ? url("user/$account->uid/edit", array('absolute' => TRUE)) : '';
+    $values['account-edit']     = $values['account-edit-url'];
   }
+
   return $values;
 }

@@ -27,6 +27,7 @@ function _webform_defaults_grid() {
       'custom_option_keys' => 0,
       'custom_question_keys' => 0,
       'description' => '',
+      'private' => FALSE,
     ),
   );
 }
@@ -39,9 +40,11 @@ function _webform_theme_grid() {
   return array(
     'webform_grid' => array(
       'arguments' => array('grid_element' => NULL),
+      'file' => 'components/grid.inc',
     ),
     'webform_display_grid' => array(
       'arguments' => array('element' => NULL),
+      'file' => 'components/grid.inc',
     ),
   );
 }
@@ -274,7 +277,7 @@ function theme_webform_display_grid($element) {
   else {
     $items = array();
     foreach (element_children($element) as $key) {
-      $items[] = ' - ' . $element[$key]['#title'] . ': ' . (isset($element['#options'][$element[$key]['#value']]) ? $element['#options'][$element[$key]['#value']] : '');
+      $items[] = ' - ' . $element[$key]['#title'] . ': ' . (isset($element['#grid_options'][$element[$key]['#value']]) ? $element['#grid_options'][$element[$key]['#value']] : '');
     }
     $output = implode("\n", $items);
   }

@@ -26,6 +26,9 @@ function token_test_token_list($type = 'all') {
     $tokens['token_test']['gamma_?']       = t("Token test Gamme with wildcard.");
     $tokens['token_test']['delta-?']         = t("Token test Delta with wildcard.");
     $tokens['token_test']['epsilon-zeta-????']  = t("Token test Epsilon-Zeta with wildcard.");
+
+    // Provide a token that returns a different value to test $options caching.
+    $tokens['token_test']['option-foo'] = t('A token with various values.');
   }
 
   return $tokens;
@@ -45,6 +48,8 @@ function token_test_token_values($type, $object = NULL, $options = array()) {
     $tokens['gamma_A']         = 'Gamma plus A';
     $tokens['delta-extra']     = 'Delta plus extra';
     $tokens['epsilon-zeta-A']  = 'Epsilon-Zeta plus A';
+
+    $tokens['option-foo'] = !empty($options['foo']) ? $options['foo'] : '';
   }
 
   return $tokens;

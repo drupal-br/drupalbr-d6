@@ -546,6 +546,11 @@ function bueditor_editor_import_form(&$form_state) {
     '#required' => TRUE,
     '#description' => t('Enter previously exported editor code.') .'<div class="warning">'. t('This code will be evaluated as PHP, therefore you must be sure that it is harmless and produces proper editor data.') .'</div>',
   );
+  $form['overwrite'] = array('#type' => 'select',
+    '#title' => t('Overwrite'),
+    '#options' => bueditor_editor_options(),
+    '#description' => t('You can optionally select the editor you want to overwrite. Otherwise, a new one will be created.'),
+  );
   $form['submit'] = array('#type' => 'submit', '#value' => t('Import'));
   $form['#validate'][] = 'bueditor_editor_import_validate';
   $form['#submit'][] = 'bueditor_editor_import_submit';
@@ -567,6 +572,7 @@ function bueditor_editor_import_validate($form, &$form_state) {
     }
   }
   $editor->name =  $form_state['values']['name'];
+  $editor->eid = $editor->overwrite = empty($form_state['values']['overwrite']) ? NULL : $form_state['values']['overwrite'];
   $form_state['editor'] = $editor;
 }
 
@@ -642,7 +648,14 @@ function bueditor_save_import($editor) {
   }
 
   //get rid of some unwanted or possibly big variables
-  unset($editor->eid, $editor->custom_path, $editor->buttons, $editor->library, $editor->icons);
+  unset($editor->custom_path, $editor->buttons, $editor->library, $editor->icons);
+  if (empty($editor->overwrite)) {
+    unset($editor->eid);
+  }
+  // New buttons shall replace the old ones.
+  elseif (!empty($editor->eid)) {
+    db_query("DELETE FROM {bueditor_buttons} WHERE eid = %d", $editor->eid);
+  }
 
   //save and return the editor
   return bueditor_write_editor($editor, $buttons);

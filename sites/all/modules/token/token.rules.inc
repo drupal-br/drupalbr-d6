@@ -71,7 +71,7 @@ function token_rules_input_evaluator_apply($text, $used_vars, &$state) {
         if (isset($token_cache[$token_id]) && $token_cache[$token_id] != $name) {
           // this is the same variable in another state
           // so we need to flush the token cache to get the fresh values
-          token_get_values('global', NULL, TRUE);
+          token_get_values('reset');
         }
 
         $text = token_replace($text, $type, $vars[$name], TOKEN_PREFIX. $name .':', TOKEN_SUFFIX);

@@ -26,6 +26,7 @@ function _webform_defaults_textfield() {
       'title_display' => 0,
       'description' => '',
       'attributes' => array(),
+      'private' => FALSE,
     ),
   );
 }
@@ -37,6 +38,7 @@ function _webform_theme_textfield() {
   return array(
     'webform_display_textfield' => array(
       'arguments' => array('element' => NULL),
+      'file' => 'components/textfield.inc',
     ),
   );
 }

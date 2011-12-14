@@ -51,6 +51,8 @@ function hook_token_list($type = 'all') {
  *   An associative array of replacement values, keyed by the original 'raw'
  *   tokens that were found in the source text. For example:
  *   $values['title-raw'] = 'My new node';
+ *
+ * @see hook_token_values_alter()
  */
 function hook_token_values($type, $object = NULL, $options = array()) {
   $values = array();
@@ -64,6 +66,33 @@ function hook_token_values($type, $object = NULL, $options = array()) {
   }
 
   return $values;
+}
+
+/**
+ * Alter replacement values for placeholder tokens.
+ *
+ * @param $replacements
+ *   An associative array of replacements returned by hook_token_values().
+ * @param $context
+ *   The context in which hook_token_values() was called. An associative array
+ *   with the following keys, which have the same meaning as the corresponding
+ *   parameters of hook_token_values():
+ *   - 'type'
+ *   - 'object'
+ *   - 'options'
+ *
+ * @see hook_token_values()
+ */
+function hook_token_values_alter(&$replacements, $context) {
+  if ($context['type'] == 'node' && !empty($context['object'])) {
+    $node = $context['object'];
+
+    if (isset($replacements['title-raw']) && !empty($node->field_title[0]['value'])) {
+      $title = $node->field_title[0]['value'];
+      $replacements['title-raw'] = $title;
+      $replacements['title'] = check_plain($title);
+    }
+  }
 }
 
 /**

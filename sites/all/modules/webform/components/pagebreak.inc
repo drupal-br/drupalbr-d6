@@ -14,7 +14,9 @@ function _webform_defaults_pagebreak() {
     'form_key' => NULL,
     'pid' => 0,
     'weight' => 0,
-    'extra' => array(),
+    'extra' => array(
+      'private' => FALSE,
+    ),
   );
 }
 
@@ -25,6 +27,7 @@ function _webform_theme_pagebreak() {
   return array(
     'webform_display_pagebreak' => array(
       'arguments' => array('element' => NULL),
+      'file' => 'components/pagebreak.inc',
     ),
   );
 }

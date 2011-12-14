@@ -145,7 +145,7 @@ function _token_token_tree_format_row($token, $token_info = array(), $is_group =
 }
 
 function _token_clean_css_identifier($id) {
-  return 'token-' . str_replace(array('][', '_', ' ', ':'), '-', trim($id, '[]'));
+  return 'token-' . rtrim(str_replace(array('][', '_', ' ', ':'), '-', trim($id, '[]')), '-');
 }
 
 /**

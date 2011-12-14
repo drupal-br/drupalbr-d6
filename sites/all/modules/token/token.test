@@ -14,6 +14,9 @@ class TokenTestHelper extends DrupalWebTestCase {
     $modules[] = 'token';
     $modules[] = 'token_test';
     parent::setUp($modules);
+
+    // Clear the token static cache.
+    token_get_values('reset');
   }
 
   function assertToken($type, $object, $token, $expected, array $options = array()) {
@@ -21,7 +24,7 @@ class TokenTestHelper extends DrupalWebTestCase {
   }
 
   function assertTokens($type, $object, array $tokens, array $options = array()) {
-    $values = token_get_values($type, $object, TRUE, $options);
+    $values = token_get_values($type, $object, FALSE, $options);
     $values = array_combine($values->tokens, $values->values);
     foreach ($tokens as $token => $expected) {
       if (!isset($expected)) {
@@ -216,6 +219,50 @@ class TokenUnitTestCase extends TokenTestHelper {
       $this->assertEqual($output, $expected);
     }
   }
+
+  /**
+   * Test token caching.
+   */
+  function testTokenCaching() {
+    // Run global tokens once so that the cache is primed.
+    $tokens = array(
+      'option-foo' => '',
+    );
+    $this->assertTokens('global', NULL, $tokens);
+
+    // Run global tokens again with different options. This should return a
+    // different value for the [option-foo] token.
+    $tokens = array(
+      'option-foo' => 'bar',
+    );
+    $this->assertTokens('global', NULL, $tokens, array('foo' => 'bar'));
+  }
+
+  /**
+   * Test the token_scan() function.
+   */
+  function testTokenScan() {
+    $tests = array(
+      array('text' => 'Test [foo] [[bar]] test.', 'tokens' => array('foo', 'bar')),
+      array('text' => 'Test [foo] [] test.',    'tokens' => array('foo')),
+      array('text' => 'Test [foo][] test.',     'tokens' => array('foo')),
+      array('text' => 'Test [foo][bar] test.',  'tokens' => array('foo', 'bar')),
+      // Test the e-mail token syntax.
+      array('text' => 'Test %foo %%bar test.',   'tokens' => array('foo', 'bar'), 'leading' => '%', 'trailing' => ''),
+      array('text' => 'Test %foo % test.',      'tokens' => array('foo'),        'leading' => '%', 'trailing' => ''),
+      array('text' => 'Test %foo% test.',       'tokens' => array('foo'),        'leading' => '%', 'trailing' => ''),
+      array('text' => 'Test %foo%%bar test.',    'tokens' => array('foo', 'bar'), 'leading' => '%', 'trailing' => ''),
+      // Test the rules token syntax.
+      array('text' => 'Test [global:foo] [global:bar] test.', 'tokens' => array('foo', 'bar'), 'leading' => '[global:'),
+      array('text' => 'Test [node:foo] [node:] test.', 'tokens' => array('foo'), 'leading' => '[node:'),
+      array('text' => 'Test [node:foo][node:] test.', 'tokens' => array('foo'), 'leading' => '[node:'),
+      array('text' => 'Test [node:foo][node:bar] test.', 'tokens' => array('foo', 'bar'), 'leading' => '[node:'),
+    );
+    foreach ($tests as $test) {
+      $test += array('leading' => TOKEN_PREFIX, 'trailing' => TOKEN_SUFFIX);
+      $this->assertEqual(token_scan($test['text'], $test['leading'], $test['trailing']), $test['tokens']);
+    }
+  }
 }
 
 class TokenNodeTestCase extends TokenTestHelper {
@@ -281,6 +328,12 @@ class TokenNodeTestCase extends TokenTestHelper {
       'log-raw' => $node->log,
     );
     $this->assertTokens('node', $node, $tokens);
+
+    // Check that a new revision of a node returns different tokens.
+    $node->revision = TRUE;
+    $node->title = 'New revision';
+    node_save($node);
+    $this->assertTokens('node', $node, array('title' => 'New revision'));
   }
 }
 
@@ -478,6 +531,17 @@ class TokenMenuTestCase extends TokenTestHelper {
       'menu-link-parent-path-raw' => 'root/parent',
     );
     $this->assertTokens('node', $node, $tokens);
+
+    // Reload the node which will not have $node->menu defined and re-test.
+    $loaded_node = node_load($node->nid);
+    // We have to reset the token static cache because tokens are cached by
+    // node ID only and not if the node object has changed.
+    $this->assertTokens('node', $loaded_node, $tokens, array('reset' => TRUE));
+
+    // Regression test for http://drupal.org/node/1317926 to ensure the
+    // original node object is not changed when calling menu_node_prepare().
+    $this->assertTrue(!isset($loaded_node->menu), t('The $node->menu property was not modified during token replacement.'), 'Regression');
+
   }
 }
 

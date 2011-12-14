@@ -98,6 +98,12 @@ function imce_js($user, $jsop = '') {
       if (function_exists($func = 'imce_js_'. $jsop)) {
         $response['data'] = $func($imce);
       }
+      // Allow alteration of response.
+      foreach (variable_get('imce_custom_response', array()) as $func => $state) {
+        if ($state && function_exists($func)) {
+          $func($jsop, $response, $imce, $user);
+        }
+      }
     }
   }
   //messages
@@ -711,6 +717,12 @@ function imce_initiate_profile($user) {
 
   //check user profile and translate tokens in directory paths and evaluate php paths.
   if ($imce = imce_user_profile($user)) {
+    // Allow alteration of raw profile
+    foreach (variable_get('imce_custom_init', array()) as $func => $state) {
+      if ($state && function_exists($func)) {
+        $func($imce, $user);
+      }
+    }
     imce_process_directories($imce, $user);
     if (!empty($imce['directories'])) {
       $imce['uid'] = (int) $user->uid;
@@ -857,6 +869,10 @@ function imce_working_directory(&$imce) {
  */
 function imce_check_directory($dirname, $imce = array()) {
 
+  if (!imce_reg_dir($dirname)) {
+    return imce_inaccessible_directory($dirname, $imce);
+  }
+
   $root = file_directory_path();
   $dirpath = $root .'/'. $dirname;
 
@@ -864,13 +880,10 @@ function imce_check_directory($dirname, $imce = array()) {
     $path = $root;
     foreach (explode('/', $dirname) as $arg) {
       $path .= '/'. $arg;
-      if (!file_check_location($path, $root) || !file_check_directory($path, FILE_CREATE_DIRECTORY)) {
+      if (!file_check_directory($path, FILE_CREATE_DIRECTORY)) {
         return imce_inaccessible_directory($dirname, $imce);
       }
     }
-  }
-  elseif (!file_check_location($dirpath, $root)) {//directory exists outside of root.
-    return imce_inaccessible_directory($dirname, $imce);
   }
 
   return TRUE;
@@ -904,7 +917,7 @@ function imce_directory_info($dirname, $imce) {
   $dirpath = $root .'/'. $dirname;
   if (imce_reg_dir($dirname) && file_check_directory($dirpath)) {
     foreach ($imce['directories'] as $name => $prop) {
-      if ($prop['subnav'] && file_check_location($dirpath, $root .'/'. $name)) {
+      if ($prop['subnav'] && ($name === '.' || strpos($dirname . '/', $name . '/') === 0)) {
         $info = $prop;
         $info['name'] = $dirname;
       }
@@ -920,6 +933,9 @@ function imce_directory_info($dirname, $imce) {
 function imce_subdirectories_accessible(&$imce) {
 
   if (!empty($imce['subdirectories'])) {
+    if (!empty($imce['perm']['subnav'])) {
+      return TRUE;
+    }
     $root = file_directory_path() .'/';
     //checking only the first one is sufficient.
     $dirname = ($imce['dir'] == '.' ? '' : $imce['dir'] .'/') . $imce['subdirectories'][0];
@@ -927,7 +943,8 @@ function imce_subdirectories_accessible(&$imce) {
 
     //check if any setting is applicable for this subdirectory through any directory in the list.
     foreach ($imce['directories'] as $name => $info) {
-      if ($info['subnav'] && $dirname != $name && file_check_location($dirpath, $root . $name)) {
+      $name = (string) $name;
+      if ($info['subnav'] && $dirname != $name && ($name == '.' || strpos($dirname . '/', $name . '/') === 0)) {
         return TRUE;
       }
     }
@@ -973,9 +990,10 @@ function imce_scan_directory($dirname, $imce = array()) {
     return $directory;
   }
 
-  $exclude = array('.' => 1, '..' => 1, 'CVS' => 1, '.svn' => 1, '.htaccess' => 1);
   while (($file = readdir($handle)) !== FALSE) {
-    if (isset($exclude[$file])) {
+
+    // Do not include dot files and folders
+    if (substr($file, 0, 1) === '.') {
       continue;
     }
 

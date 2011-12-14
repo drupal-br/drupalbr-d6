@@ -2,9 +2,9 @@ name = "IMCE"
 description = "An image/file uploader and browser supporting personal directories and user quota."
 core = "6.x"
 
-; Information added by drupal.org packaging script on 2011-06-06
-version = "6.x-2.2"
+; Information added by drupal.org packaging script on 2011-10-20
+version = "6.x-2.3"
 core = "6.x"
 project = "imce"
-datestamp = "1307386316"
+datestamp = "1319104233"
 
