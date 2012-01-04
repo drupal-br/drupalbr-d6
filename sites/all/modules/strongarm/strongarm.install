@@ -1,5 +1,4 @@
 <?php
-// $Id: strongarm.install,v 1.1.2.1.2.3 2010/02/04 02:46:03 yhahn Exp $
 
 /**
  * Implementation of hook_enable().
@@ -43,6 +42,23 @@ function strongarm_update_6201() {
       if (!$exists && !(is_object($value) && isset($value->api_version))) {
         variable_set($variable, $value);
         $ret[] = array('success' => TRUE, 'query' => "Set 1.x strongarmed variable {$variable} in the database.");
+      }
+    }
+  }
+  return $ret;
+}
+
+/**
+ * Update 6202: Set all strongarm variables that are only set in code in the database.
+ */
+function strongarm_update_6202() {
+  $ret = array();
+  $variables = strongarm_vars_load();
+  if (!empty($variables)) {
+    foreach ($variables as $var_name => $var) {
+      $exists = db_result(db_query("SELECT name FROM {variable} WHERE name = '%s'", $var_name));
+      if (!$exists) {
+        variable_set($var_name, $var->value);
       }
     }
   }

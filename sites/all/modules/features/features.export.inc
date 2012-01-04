@@ -43,7 +43,9 @@ function features_populate($items, $dependencies, $module_name) {
 function _features_populate($pipe, &$export, $module_name = '') {
   features_include();
   foreach ($pipe as $component => $data) {
-    if ($function = features_hook($component, 'features_export')) {
+    // Convert already defined items to dependencies.
+    _features_resolve_dependencies($data, $export, $module_name, $component);
+    if (!empty($data) && $function = features_hook($component, 'features_export')) {
       // Pass module-specific data and export array.
       // We don't use features_invoke() here since we need to pass $export by reference.
       $more = $function($data, $export, $module_name, $component);
@@ -56,6 +58,22 @@ function _features_populate($pipe, &$export, $module_name = '') {
     }
   }
   return $export;
+}
+
+/**
+ * Iterates over data and convert to dependencies if already defined elsewhere.
+ */
+function _features_resolve_dependencies(&$data, &$export, $module_name, $component) {
+  if ($map = features_get_default_map($component)) {
+    foreach ($data as $key => $item) {
+      // If the node type is provided by a different module, add the provider as
+      // a dependency.
+      if (isset($map[$item]) && $map[$item] != $module_name) {
+        $export['dependencies'][$map[$item]] = $map[$item];
+        unset($data[$key]);
+      }
+    }
+  }
 }
 
 /**
@@ -137,8 +155,18 @@ function features_export_prepare($export, $module_name, $reset = FALSE) {
   if (isset($export['conflicts'])) {
     unset($export['conflicts']);
   }
+
+  // Order info array.
+  $standard_info = array();
+  foreach (array('name', 'description', 'core', 'package', 'php', 'version', 'project', 'dependencies') as $item) {
+    if (isset($export[$item])) {
+      $standard_info[$item] = $export[$item];
+    }
+  }
+
+  $export = array_diff_assoc($export, $standard_info);
   ksort($export);
-  return $export;
+  return array_merge($standard_info, $export);
 }
 
 /**
@@ -747,7 +775,7 @@ function features_get_component_states($features = array(), $rebuild_only = TRUE
                   $cache[$feature][$component] = FEATURES_OVERRIDDEN;
                 }
                 // DB has no modifications to prior code state (or this is initial install).
-                else if ($codecache == $normal || empty($codecache)) {
+                else if (empty($codecache) || $codecache == $normal) {
                   $cache[$feature][$component] = FEATURES_REBUILDABLE;
                 }
                 // None of the states match. Requires user intervention.
@@ -802,7 +830,7 @@ function _features_linetrim($code) {
  */
 function _features_sanitize(&$array) {
   if (is_array($array)) {
-    $is_assoc = (array_keys($array) != range(0, count($array) - 1));
+    $is_assoc = (array_keys($array) !== range(0, count($array) - 1));
     if ($is_assoc) {
       ksort($array);
       $array = array_filter($array);

@@ -211,7 +211,7 @@ function views_handler_dependencies() {
     foreach (module_implements('views_data') as $module) {
       if ($tables = module_invoke($module, 'views_data')) {
         foreach ($tables as $table => $info) {
-          if (isset($info['table'])) {
+          if (isset($info['table']) && (!isset($map[$table]) || $info['table']['group'])) {
             $map[$table] = $module;
           }
           else if (!isset($map[$table])) {

@@ -1,4 +1,3 @@
-$Id: README.txt,v 1.1.2.1 2010/06/29 20:47:56 yhahn Exp $
 
 Strongarm 2.x for Drupal 6.x
 ----------------------------
