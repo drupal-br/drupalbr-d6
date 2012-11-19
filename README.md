@@ -1,3 +1,7 @@
+## Atenção
+
+Este repositório contém os arquivos do website do Drupal Brasil em Drupal 6. Estamos reformulando o Drupal Brasil e o projeto está sendo versionado no repositório https://github.com/drupal-br/drupalbr-d7.
+
 ## Instalação
 
 Siga estes passos para fazer a cópia da estrutura do site Drupal Brasil rodar em sua maquina.
